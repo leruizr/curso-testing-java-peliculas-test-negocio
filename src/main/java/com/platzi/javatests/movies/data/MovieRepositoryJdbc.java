@@ -30,7 +30,18 @@ public class MovieRepositoryJdbc implements MovieRepository {
     @Override
     public void saveOrUpdate(Movie movie) {
 
+        jdbcTemplate.update("insert into movies (name, minutes, genre) values (?, ?, ?)",
+                movie.getName(), movie.getMinutes(), movie.getGenre().toString());
     }
+
+    @Override
+    public Collection<Movie> findByName(String name) {
+        String query = "select * from movies where lower(name) like ?";
+        String searchTerm = "%" + name.toLowerCase() + "%";
+        return jdbcTemplate.query(query, new Object[]{searchTerm}, movieMapper);
+    }
+
+
 
     private static RowMapper<Movie> movieMapper = (rs, rowNum) -> new Movie(
             rs.getInt("id"),

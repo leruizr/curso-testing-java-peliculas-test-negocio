@@ -56,4 +56,14 @@ public class MovieServiceShould {
     private List<Integer> getMovieIds(Collection<Movie> movies) {
         return movies.stream().map(Movie::getId).collect(Collectors.toList());
     }
+
+    @Test
+    public void testFindByName() {
+        Collection<Movie> movies = movieService.findByName("Super");
+
+        // Verificar que se encontraron las películas esperadas
+        assertEquals(2, movies.size());
+        assertTrue(movies.stream().anyMatch(movie -> movie.getName().equals("Super 8")));
+        assertTrue(movies.stream().anyMatch(movie -> movie.getName().equals("Superman")));
+    }
 }

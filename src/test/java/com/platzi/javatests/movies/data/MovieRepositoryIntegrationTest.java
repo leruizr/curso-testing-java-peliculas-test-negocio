@@ -9,18 +9,21 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
+
+import javax.sql.DataSource;
+
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.Collection;
 
 import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 
-public class MovieRepositoryIntegrationTest  {
+public class MovieRepositoryIntegrationTest {
 
     private MovieRepositoryJdbc movieRepository;
-    private DriverManagerDataSource dataSource;
+    private DataSource dataSource;
 
     @Before
     public void setUp() throws Exception {
@@ -33,7 +36,6 @@ public class MovieRepositoryIntegrationTest  {
         JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
         movieRepository = new MovieRepositoryJdbc(jdbcTemplate);
-
     }
 
     @Test
@@ -41,28 +43,56 @@ public class MovieRepositoryIntegrationTest  {
 
         Collection<Movie> movies = movieRepository.findAll();
 
-        assertThat(movies, is(Arrays.asList(
+        assertThat( movies, is(Arrays.asList(
                 new Movie(1, "Dark Knight", 152, Genre.ACTION),
                 new Movie(2, "Memento", 113, Genre.THRILLER),
-                new Movie(3, "Matrix", 136, Genre.ACTION)
-        )));
+                new Movie(3, "Matrix", 136, Genre.ACTION),
+                new Movie(4, "Super 8", 112, Genre.THRILLER),
+                new Movie(5, "Superman", 143, Genre.ACTION),
+                new Movie(6, "Spiderman", 121, Genre.ACTION)
+        )) );
     }
 
     @Test
-    public void load_movie_by_id() throws SQLException {
+    public void load_movie_by_id() {
 
         Movie movie = movieRepository.findById(2);
 
-        assertThat(movie, is(new Movie(2, "Memento", 113, Genre.THRILLER)));
+        assertThat( movie, is(new Movie(2, "Memento", 113, Genre.THRILLER)) );
     }
+
+    @Test
+    public void insert_a_movie() {
+
+        Movie movie = new Movie("Super 8", 112, Genre.THRILLER);
+
+        movieRepository.saveOrUpdate(movie);
+
+        Movie movieFromDb = movieRepository.findById(4);
+
+        assertThat( movieFromDb, is(new Movie(4, "Super 8", 112, Genre.THRILLER)) );
+    }
+
+    @Test
+    public void find_movies_by_name() {
+
+        // Buscar películas que contengan "Super" en el nombre
+        Collection<Movie> movies = movieRepository.findByName("Super");
+
+        // Verificar que se encontraron las películas esperadas
+        assertThat(movies.size(), is(2));
+        assertTrue(movies.stream().anyMatch(movie -> movie.getName().equals("Super 8")));
+        assertTrue(movies.stream().anyMatch(movie -> movie.getName().equals("Superman")));
+    }
+
 
     @After
     public void tearDown() throws Exception {
-        // Clean up the test data
-       final Statement s = dataSource.getConnection().createStatement();
-       s.execute("drop all objects delete files");
-    }
 
+        // Remove H2 files -- https://stackoverflow.com/a/51809831/1121497
+        final Statement s = dataSource.getConnection().createStatement();
+        s.execute("drop all objects delete files"); // "shutdown" is also enough for mem db
+    }
 
 
 }

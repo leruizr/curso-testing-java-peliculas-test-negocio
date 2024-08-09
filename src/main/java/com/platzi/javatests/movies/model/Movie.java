@@ -48,4 +48,15 @@ public class Movie {
     public int hashCode() {
         return Objects.hash(id, name, minutes, genre);
     }
+
+    @Override
+    public String toString() {
+        return "Movie{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", minutes=" + minutes +
+                ", genre=" + genre +
+                '}';
+    }
+
 }

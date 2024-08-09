@@ -26,4 +26,8 @@ public class MovieService {
         return movieRepository.findAll().stream()
                 .filter(movie -> movie.getMinutes() <= length).collect(Collectors.toList());
     }
+
+    public Collection<Movie> findByName(String name) {
+        return movieRepository.findByName(name);
+    }
 }
